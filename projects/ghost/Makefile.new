@@ -1,0 +1,26 @@
+.SUFFIXES: .cu .cpp
+
+all: muscl
+
+SOURCES = muscl
+
+# Find picture and include dependencies from a tex file
+%.d: %.cu
+	nvcc $< --compiler-bindir=/usr/bin/ -M | sed 's,\($*\)\.o[ :]*,\1 $@ : ,g' > $@
+
+NVCC:= /usr/local/cuda-5.5/bin/nvcc
+CUDA_DIR:=$(dir $(NVCC))../
+CUDA_INC:=$(CUDA_DIR)/include
+ARCH:=$(shell uname -m)
+
+CUDA_LIB:=$(CUDA_DIR)/lib64
+
+.cpp:
+	g++ $< -o $@ -I$(CUDA_INC) -L$(CUDA_LIB) -lcudart -lcublas -lOpenCL -O3
+
+.cu:
+	$(NVCC) $< -o $@ --compiler-bindir=/usr/bin/ -Xptxas -v -arch=compute_20 -code=sm_20 -L/usr/local/cuda/lib64 -L/usr/local/cuda/samples/common/lib/linux/ -I/usr/local/cuda/samples/common/inc -lrt -lcuda -lboost_thread-mt -lboost_system -lglut -lpng 
+ 
+
+
+
